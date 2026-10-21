@@ -1,16 +1,31 @@
-# React + Vite
+Dockerfile :
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-Currently, two official plugins are available:
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Commands :
 
-## React Compiler
+npm create vite@latest react-app -- --template react
+cd react-app
+npm install
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Docker Commands :
 
-## Expanding the ESLint configuration
+docker build -t react-image .
+docker images
+docker run -d -p 8081:80 --name react-container react-image
+docker ps
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Stop :
+
+docker stop react-container
+docker rm -f react-container
